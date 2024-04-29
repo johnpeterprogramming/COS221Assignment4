@@ -1,3 +1,12 @@
+
+import com.mycompany.javamavenguiapp.JavaMavenGuiApp;
+import java.sql.*;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.table.*;
+import javax.swing.*;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -8,12 +17,16 @@
  * @author johna
  */
 public class MainFrame extends javax.swing.JFrame {
+    private Connection connection = null;
 
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
         initComponents();
+        initConnection();
+        populateStaffTable(null);
+        populateFilmsTable();
     }
 
     /**
@@ -26,36 +39,79 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        filmsTable = new javax.swing.JTable();
+        jButton2 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        staffTable = new javax.swing.JTable();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 900, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 375, Short.MAX_VALUE)
-        );
+        filmsTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Title", "Description", "Release Year", "Rental Duration", "Rental Rate", "Length", "Rating"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Integer.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
 
-        jTabbedPane1.addTab("Staff", jPanel1);
-        jPanel1.getAccessibleContext().setAccessibleName("pane1");
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(filmsTable);
+
+        jButton2.setText("Insert");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 900, Short.MAX_VALUE)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 891, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 9, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 375, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(36, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Films", jPanel2);
@@ -86,25 +142,152 @@ public class MainFrame extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Notifications", jPanel4);
 
+        staffTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "First Name", "Last Name", "Address", "District", "City", "Postal Code", "Phone", "Store", "Active"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Boolean.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(staffTable);
+
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("First Name:");
+
+        jButton1.setText("Filter by Name");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 894, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(40, 40, 40)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1)
+                    .addComponent(jButton1))
+                .addContainerGap(53, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Staff", jPanel1);
+        jPanel1.getAccessibleContext().setAccessibleName("pane1");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(51, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(44, 44, 44)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 900, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(108, 108, 108))
+                .addContainerGap(115, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(54, Short.MAX_VALUE))
+                .addGap(101, 101, 101))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        if (this.connection != null) {
+            try {
+                this.connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't close connection", ex);
+            }
+        }
+            
+    }//GEN-LAST:event_formWindowClosed
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        String firstName = jTextField1.getText();
+        
+        populateStaffTable(firstName);
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        String title = JOptionPane.showInputDialog("Enter Film Title: ");
+        String description = JOptionPane.showInputDialog("Enter Film Description: ");
+        String release_year  = JOptionPane.showInputDialog("Enter Film Release year: ");
+        String rental_duration = JOptionPane.showInputDialog("Enter Film Rental Duration: ");
+        String rental_rate = JOptionPane.showInputDialog("Enter Film Rental Rate: ");
+        String length = JOptionPane.showInputDialog("Enter Film Length in Minutes: ");
+        String rating = JOptionPane.showInputDialog("Enter Film Rating: ");
+        
+        if (this.connection != null) {
+    
+            try {
+                Statement insertFilmStatement = this.connection.createStatement();
+                String sql = String.format("INSERT INTO film(title, description, release_year, rental_duration, language_id, rental_rate, length, rating) VALUES('%s', '%s', %s, 1, %s, %s, %s, '%s')", title, description, release_year, rental_duration, rental_rate, length, rating);
+//                Language is english by default to simplify things
+
+//                System.out.println(sql);
+                
+                insertFilmStatement.executeQuery(sql);
+//              Reload films table data
+                populateFilmsTable();
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't insert into film table", ex);
+            }
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -132,7 +315,7 @@ public class MainFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -141,11 +324,108 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
 
+    private void initConnection() {
+        if (this.connection == null) {
+            try {
+                Class.forName("org.mariadb.jdbc.Driver");
+                this.connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/sakila", "johna", "password");
+
+            } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(JavaMavenGuiApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    
+    }
+    
+    private void populateStaffTable(String first_name) { 
+        if (this.connection != null) {
+    
+            try {
+                Statement getStaffStatement = this.connection.createStatement();
+                
+                String sql = "SELECT s.first_name, s.last_name, a.address, a.district, c.city, a.postal_code, a.phone, s.store_id, s.active FROM staff as s, address as a, city as c WHERE s.address_id = a.address_id AND a.city_id = c.city_id";
+//                Fuzzy search
+                if (first_name != null)
+                    sql += " AND s.first_name LIKE '%" + first_name + "%'";
+                
+                var staffResult = getStaffStatement.executeQuery(sql);
+                
+                DefaultTableModel RecordTable = (DefaultTableModel)staffTable.getModel();
+                RecordTable.setRowCount(0);   
+                
+                
+                while (staffResult.next()) {
+                    Vector columnData = new Vector();
+                    
+                    
+                    columnData.add(staffResult.getString("first_name"));
+                    columnData.add(staffResult.getString("last_name"));
+                    columnData.add(staffResult.getString("address"));
+                    columnData.add(staffResult.getString("district"));
+                    columnData.add(staffResult.getString("city"));
+                    columnData.add(staffResult.getString("postal_code"));
+                    columnData.add(staffResult.getString("phone"));
+                    columnData.add(staffResult.getString("store_id"));
+                    columnData.add(staffResult.getBoolean("active"));
+                    
+                    RecordTable.addRow(columnData);  
+                }
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't get staff data and/or insert into table.", ex);
+            }
+        }
+    }
+    
+    private void populateFilmsTable() { 
+        if (this.connection != null) {
+    
+            try {
+                Statement getFilmsStatement = this.connection.createStatement();
+                
+                String sql = "SELECT title, description, release_year, rental_duration, rental_rate, length, rating FROM film";
+                
+                var filmsResult = getFilmsStatement.executeQuery(sql);
+                
+                DefaultTableModel RecordTable = (DefaultTableModel)filmsTable.getModel();
+                RecordTable.setRowCount(0);   
+                
+                
+                while (filmsResult.next()) {
+                    Vector columnData = new Vector();
+                    
+                    
+                    columnData.add(filmsResult.getString("title"));
+                    columnData.add(filmsResult.getString("description"));
+                    columnData.add(filmsResult.getString("release_year"));
+                    columnData.add(filmsResult.getInt("rental_duration"));
+                    columnData.add(filmsResult.getDouble("rental_rate"));
+                    columnData.add(filmsResult.getInt("length"));
+                    columnData.add(filmsResult.getString("rating"));
+    
+                    
+                    RecordTable.addRow(columnData);  
+                }
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't get staff data and/or insert into table.", ex);
+            }
+        }
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable filmsTable;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTextField jTextField1;
+    public javax.swing.JTable staffTable;
     // End of variables declaration//GEN-END:variables
 }
