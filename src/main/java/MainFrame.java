@@ -1,11 +1,14 @@
 
 import com.mycompany.javamavenguiapp.JavaMavenGuiApp;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.*;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -62,7 +65,6 @@ public class MainFrame extends javax.swing.JFrame {
         notificationTable = new javax.swing.JTable();
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         staffTable = new javax.swing.JTable();
@@ -250,6 +252,11 @@ public class MainFrame extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        notificationTable.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                notificationTablePropertyChange(evt);
+            }
+        });
         jScrollPane4.setViewportView(notificationTable);
 
         jButton4.setText("New Client");
@@ -266,8 +273,6 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton6.setText("Update Client");
-
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
@@ -280,9 +285,7 @@ public class MainFrame extends javax.swing.JFrame {
                         .addGap(218, 218, 218)
                         .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(47, 47, 47)
-                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(50, 50, 50)
-                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(53, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
@@ -293,8 +296,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGap(53, 53, 53)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(137, Short.MAX_VALUE))
         );
 
@@ -459,11 +461,54 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
+        String first_name = JOptionPane.showInputDialog("Enter Client First Name: ");
+        String last_name = JOptionPane.showInputDialog("Enter Client Last Name: ");
+        String store_id  = JOptionPane.showInputDialog("Enter Client Store ID: ");
+        String email = JOptionPane.showInputDialog("Enter Client Email Address: ");
+        String address_id = JOptionPane.showInputDialog("Enter Client Address ID: ");
+        
+        if (this.connection != null) {
+    
+            try {
+                Statement insertFilmStatement = this.connection.createStatement();
+                
+                String sql = String.format("INSERT INTO `customer` (`customer_id`, `store_id`, `first_name`, `last_name`, `email`, `address_id`, `active`, `create_date`, `last_update`) VALUES (NULL, %s, '%s', '%s', '%s', %s, '1', NOW(), current_timestamp())", store_id, first_name, last_name, email, address_id);
+                insertFilmStatement.executeQuery(sql);
+                
+                populateNotificationsTable();
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't insert into customers table", ex);
+            }
+        }
+        
+        
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
+        String last_name = JOptionPane.showInputDialog("Enter Client Last Name you WISH TO DELETE: ");
+        
+        try {
+            Statement deleteStatement = this.connection.createStatement();
+                
+            String sql = "DELETE FROM customer WHERE last_name = '" + last_name + "'";
+               
+            deleteStatement.executeQuery(sql);
+            
+            populateNotificationsTable();
+                        
+        } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't Delete client", ex);
+        }
+        
+        
+//        populateNotificationsTable();
+        
     }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void notificationTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_notificationTablePropertyChange
+        // TODO add your handling code here:       
+    }//GEN-LAST:event_notificationTablePropertyChange
 
     /**
      * @param args the command line arguments
@@ -655,9 +700,42 @@ public class MainFrame extends javax.swing.JFrame {
                     RecordTable.addRow(columnData);  
                 }
                 
+                notificationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                    @Override
+                    public void valueChanged(ListSelectionEvent event) {
+//                        if (!event.getValueIsAdjusting()) { // Ensures that the event is final
+                            int selectedRow = notificationTable.getSelectedRow(); // Get the index of the selected row
+
+                            if (selectedRow != -1) {
+                                // Get data from the selected row
+                                String first_name = (String) notificationTable.getValueAt(selectedRow, 0);
+                                String last_name = (String) notificationTable.getValueAt(selectedRow, 1);
+                                String email = (String) notificationTable.getValueAt(selectedRow, 2);
+                                String address = (String) notificationTable.getValueAt(selectedRow, 3);
+                                boolean active = (boolean) notificationTable.getValueAt(selectedRow, 4);
+
+                                try {
+                                    Statement updateCustomer = MainFrame.this.connection.createStatement();
+                                    String sql = String.format("UPDATE customer SET first_name = '%s', last_name = '%s', email = '%s', active = %b WHERE last_name = '%s'", first_name, last_name, email, active, last_name);
+                                    updateCustomer.executeQuery(sql);
+
+                                    populateNotificationsTable();
+                                    System.out.println("DONE UPDATING VARIABLE");
+
+                                } catch (SQLException ex) {
+                                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't update table", ex);
+                                }
+                            }
+//                        }
+                    }
+                }); 
             } catch (SQLException ex) {
                 Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, "Couldn't get staff data and/or insert into table.", ex);
             }
+                
+
+                
+
         }
     }
 
@@ -668,7 +746,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
