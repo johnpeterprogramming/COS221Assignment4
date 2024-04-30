@@ -10,6 +10,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -19,6 +23,14 @@ import javax.swing.event.ListSelectionListener;
  *
  * @author johna
  */
+class DvdRentalConfig {
+    public String dbUsername;
+    public String dbPassword;
+    public String dbProto;
+    public String dbHost;
+    public String dbName;
+    public int dbPort;
+}
 public class MainFrame extends javax.swing.JFrame {
     private Connection connection = null;
 
@@ -544,15 +556,23 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
     }
-
+    
+    
     private void initConnection() {
         if (this.connection == null) {
             try {
                 Class.forName("org.mariadb.jdbc.Driver");
-                this.connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/sakila", "johna", "password");
+//                COS221Assignment4@
+                DvdRentalConfig config;
+                ObjectMapper objectMapper = new ObjectMapper();
+                config = objectMapper.readValue(new File("C:\\Users\\bbdnet2825\\Desktop\\COS221\\COS221Assignment4\\src\\main\\java\\config.json"), DvdRentalConfig.class);
+                
+                this.connection = DriverManager.getConnection(config.dbProto + "://" + config.dbHost + ":" + String.valueOf(config.dbPort) + "/" + config.dbName, config.dbUsername, config.dbPassword);
 
             } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(JavaMavenGuiApp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     
